@@ -1,0 +1,78 @@
+
+Modify the file as needed.  EEM script can be cut and paste to the configs.
+The reload at the end will remove the EEM script.
+Note: this script is for Rogers and Telus FW upgrade andassumes that Rogers FW is active.
+FW images are pre-loaded from FND via request to Support.
+
+event manager applet FW-upgrade
+event timer countdown time 60 maxrun 1800
+action 10 syslog msg "****** Begin Firmware Upgrade ******"
+action 11 cli command "enable"
+action 11.5 wait 5
+action 20 syslog msg "****** delete and mkdir OEM_PRI ******"
+action 20.1 cli command "del /force /recursive OEM_PRI"
+action 20.2 cli command "mkdir OEM_PRI" pattern "OEM_PRI"
+action 20.3 cli command ""
+action 21.1 syslog msg "****** delete and mkdir FW-Rogers ******"
+action 21.2 cli command "del /force /recursive FW-Rogers" 
+action 21.3 cli command "mkdir FW-Rogers" pattern "FW-Rogers"
+action 21.4 cli command ""
+action 22.1 syslog msg "****** delete and mkdir FW-Telus ******"
+action 22.2 cli command "del /force /recursive FW-Telus"
+action 22.3 cli command "mkdir FW-Telus" pattern "FW-Telus"
+action 22.4 cli command ""
+action 30 syslog msg "****** copy FW Rogers nvu ******"
+action 31 cli command "copy flash:/managed/files/7455_02.30.01.01_ROGERS_001.023_000.nvu flash:/FW-Rogers" pattern "001.023_000.nvu"
+action 32 cli command "" pattern "bytes copied"
+action 33 syslog msg "****** copy FW Rogers cwe ******"
+action 34 cli command "copy flash:/managed/files/74xx_02.30.01.01.cwe flash:/FW-Rogers" pattern "01.cwe"
+action 35 cli command "" pattern "bytes copied"
+action 40 syslog msg "****** copy FW Telus nvu ******"
+action 41 cli command "copy flash:/managed/files/7455_02.30.01.01_TELUS_001.023_000.nvu flash:/FW-Telus" pattern "001.023_000.nvu"
+action 42 cli command "" pattern "bytes copied"
+action 43 syslog msg "****** copy FW Telus cwe ******"
+action 44 cli command "copy flash:/managed/files/74xx_02.30.01.01.cwe flash:/FW-Telus" pattern "01.cwe"
+action 45 cli command "" pattern "bytes copied"
+action 50 syslog msg "****** copy OEM_PRI ******"
+action 51 cli command "copy flash:/managed/files/MC7455MOBILE_1103084_02.24.05.06_00_Cisco_000.006_000.nvu flash:/OEM_PRI" pattern "000.006_000.nvu"
+action 53 cli command "" pattern "bytes copied"
+action 63 syslog msg "****** Upgrade Rogers Firmware *******"
+action 63.5 wait 30
+action 64 cli command "microcode reload cellular 0 0 modem-provision flash:FW-Rogers" pattern "confirm"
+action 65 cli command "" pattern "confirm"
+action 65.5 cli command "" 
+action 65.6 syslog msg "****** Wait 6 minutes *******"
+action 66 wait 360
+action 69 syslog msg "****** Rogers Firmware Upgrade has Completed *******"
+action 70 syslog msg "****** Upgrade OEM_PRI Firmware ******"
+action 71 cli command "microcode reload cellular 0 0 modem-provision flash:OEM_PRI" pattern "confirm"
+action 72 cli command "" pattern "confirm"
+action 72.5 cli command "" 
+action 72.6 syslog msg "****** Wait 5 minutes *******"
+action 73 wait 300
+action 74 syslog msg "****** OEM_PRI Firmware Upgrade has Completed *******"
+action 85 syslog msg "****** Activate Telus Firmware ******"
+action 86 cli command "cell 0 lte firmware-activate 6" pattern "confirm"
+action 87 cli command ""
+action 88 syslog msg "****** Wait 4 minutes *******"
+action 89 wait 240
+action 90 syslog msg "****** ****** Upgrade Telus Firmware ******"
+action 91 cli command "microcode reload cellular 0 0 modem-provision flash:FW-Telus" pattern "confirm"
+action 92 cli command "" pattern "confirm"
+action 92.5 cli command "" 
+action 92.6 syslog msg "****** Wait 5 minutes *******"
+action 93 wait 300
+action 94 syslog msg "****** Telus Upgrade has Completed *******"
+action 95.1 syslog msg "****** Set Telus APN ******"
+action 95.2 cli command "cellular 0 lte profile create 1 m2m-west.telus.iot none ipv4" pattern "confirm"
+action 95.4 cli command "y"
+action 96 syslog msg "****** Re-Activate Rogers SIM ******"
+action 97 cli command "cell 0 lte firmware-activate 4" pattern "confirm"
+action 98 cli command ""
+action 98.6 syslog msg "****** Wait 4 minutes *******"
+action 98.7 wait 240
+action 99 syslog msg "****** Complete Firmware Upgrade ******"
+action 99.1 cli command "reload" pattern "yes/no"
+action 99.2 cli command "no" pattern "yes/no"
+action 99.3 cli command "no" pattern "confirm"
+action 99.4 cli command ""
